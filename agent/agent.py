@@ -99,5 +99,4 @@ def main():
         time.sleep(INTERVAL_SECONDS)
 
 if __name__ == "__main__":
-    main()
-# -*- coding: utf-8 -*-
+    main() 

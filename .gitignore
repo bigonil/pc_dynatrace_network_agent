@@ -208,3 +208,30 @@ __marimo__/
 
 # Segreti Dynatrace
 secrets/
+
+# Virtual environment
+venv/
+
+# PyInstaller
+build/output/
+build/**/*.spec
+build/**/*.log
+__pycache__/
+
+# MSI / WiX
+*.msi
+*.wixobj
+*.wixpdb
+
+# Logs
+*.log
+
+# Secrets
+secrets/
+*.json
+
+# OS / Editor
+.vscode/
+.DS_Store
+Thumbs.db
+.idea/

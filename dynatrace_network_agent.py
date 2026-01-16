@@ -44,7 +44,7 @@ def icmp_latency(target: str, timeout: float = 2.0) -> float | None:
     Usa ping3 in modalità non privilegiata per compatibilità OS.
     """
     try:
-        latency_ms = ping(target, timeout=timeout, unit="ms", privileged=False)
+        latency_ms = ping(target, timeout=timeout, unit="ms")
         if latency_ms is None:
             return None
         return float(latency_ms)

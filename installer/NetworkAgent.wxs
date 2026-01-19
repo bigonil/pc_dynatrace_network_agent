@@ -4,53 +4,130 @@
   <Product
     Id="*"
     Name="Network Observability Agent"
-    Manufacturer="Enterprise IT"
-    Version="1.0.0"
     Language="1033"
-    UpgradeCode="{8A0178CD-8A9D-4BDA-8666-78B4B56443DA}">
+    Version="2.0.0"
+    Manufacturer="Enterprise IT"
+    UpgradeCode="{A1B2C3D4-E5F6-47A1-9ABC-123456789000}">
 
-    <Package InstallerVersion="500" InstallScope="perMachine" />
+    <Package
+      InstallerVersion="500"
+      Compressed="yes"
+      InstallScope="perMachine" />
+
+    <!-- Major upgrade support -->
+    <MajorUpgrade
+      Schedule="afterInstallInitialize"
+      DowngradeErrorMessage="A newer version of Network Observability Agent is already installed." />
+
     <MediaTemplate />
 
-    <!-- Directory tree -->
+    <!-- ===================== -->
+    <!-- DIRECTORY STRUCTURE -->
+    <!-- ===================== -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="NetworkObservabilityAgent" />
       </Directory>
     </Directory>
 
-    <!-- agent.exe (versioned, key file) -->
-    <Component Id="AgentExeComponent" Guid="*" Directory="INSTALLDIR">
-      <File Id="AgentExe" Source="payload\agent.exe" KeyPath="yes" />
+    <!-- ===================== -->
+    <!-- COMPONENTS -->
+    <!-- ===================== -->
+
+    <!-- AGENT + SERVICE -->
+    <Component
+      Id="AgentExeComponent"
+      Guid="{94684669-D88B-5951-8C8F-B35855504F17}"
+      Directory="INSTALLDIR">
+
+      <File
+        Id="AgentExe"
+        Source="payload\agent.exe"
+        KeyPath="yes" />
+
+      <!-- WINDOWS SERVICE (MSI-NATIVE) -->
+      <ServiceInstall
+        Id="NetworkAgentService"
+        Name="NetworkObservabilityAgent"
+        DisplayName="Network Observability Agent"
+        Description="Dynatrace Network Observability Agent"
+        Type="ownProcess"
+        Start="auto"
+        ErrorControl="normal"
+        Vital="yes"
+        Account="LocalSystem"
+        Arguments="--service" />
+
+      <ServiceControl
+        Id="NetworkAgentServiceControl"
+        Name="NetworkObservabilityAgent"
+        Start="install"
+        Stop="both"
+        Remove="uninstall"
+        Wait="yes" />
+
     </Component>
 
-    <!-- agent.py -->
-    <Component Id="AgentPyComponent" Guid="*" Directory="INSTALLDIR">
-      <File Id="AgentPy" Source="payload\agent.py" KeyPath="yes" />
+    <!-- INSTALL SCRIPT -->
+    <Component
+      Id="InstallScriptComponent"
+      Guid="{E91553C7-16DC-5013-8FAD-3B7E60363F0E}"
+      Directory="INSTALLDIR">
+
+      <File
+        Id="InstallScript"
+        Source="payload\install.ps1"
+        KeyPath="yes" />
     </Component>
 
-    <!-- dynatrace.json -->
-    <Component Id="SecretsComponent" Guid="*" Directory="INSTALLDIR">
-      <File Id="DynatraceSecrets" Source="payload\secrets\dynatrace.json" KeyPath="yes" />
+    <!-- UNINSTALL SCRIPT -->
+    <Component
+      Id="UninstallScriptComponent"
+      Guid="{8CE21AEA-8417-552D-B9F7-7EFC73C75A13}"
+      Directory="INSTALLDIR">
+
+      <File
+        Id="UninstallScript"
+        Source="payload\uninstall.ps1"
+        KeyPath="yes" />
     </Component>
 
-    <Feature Id="MainFeature" Level="1">
+    <!-- ===================== -->
+    <!-- FEATURES -->
+    <!-- ===================== -->
+    <Feature
+      Id="MainFeature"
+      Title="Network Observability Agent"
+      Level="1">
+
       <ComponentRef Id="AgentExeComponent" />
-      <ComponentRef Id="AgentPyComponent" />
-      <ComponentRef Id="SecretsComponent" />
+      <ComponentRef Id="InstallScriptComponent" />
+      <ComponentRef Id="UninstallScriptComponent" />
+
     </Feature>
 
-    <!-- Post-install: create Windows service -->
+    <!-- ===================== -->
+    <!-- CUSTOM ACTIONS -->
+    <!-- ===================== -->
+
+    <!-- Optional post-install script (NO SERVICE CREATION HERE) -->
     <CustomAction
-      Id="InstallService"
+      Id="RunInstallScript"
+      Directory="INSTALLDIR"
       Execute="deferred"
       Impersonate="no"
-      FileKey="AgentExe"
-      ExeCommand="powershell.exe -ExecutionPolicy Bypass -File install.ps1"
-      Return="check" />
+      ExeCommand='powershell.exe -ExecutionPolicy Bypass -File "[INSTALLDIR]install.ps1"' />
+
+    <CustomAction
+      Id="RunUninstallScript"
+      Directory="INSTALLDIR"
+      Execute="deferred"
+      Impersonate="no"
+      ExeCommand='powershell.exe -ExecutionPolicy Bypass -File "[INSTALLDIR]uninstall.ps1"' />
 
     <InstallExecuteSequence>
-      <Custom Action="InstallService" After="InstallFiles">NOT Installed</Custom>
+      <Custom Action="RunInstallScript" After="InstallFiles">NOT Installed</Custom>
+      <Custom Action="RunUninstallScript" Before="RemoveFiles">REMOVE="ALL"</Custom>
     </InstallExecuteSequence>
 
   </Product>

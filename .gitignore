@@ -222,6 +222,7 @@ __pycache__/
 *.msi
 *.wixobj
 *.wixpdb
+src/config.yaml
 
 # Logs
 *.log

@@ -235,3 +235,4 @@ secrets/
 .DS_Store
 Thumbs.db
 .idea/
+signing/

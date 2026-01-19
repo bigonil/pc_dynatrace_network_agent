@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product
+    Id="*"
+    Name="Network Observability Agent"
+    Manufacturer="Enterprise IT"
+    Version="1.0.0"
+    Language="1033"
+    UpgradeCode="{8A0178CD-8A9D-4BDA-8666-78B4B56443DA}">
+
+    <Package InstallerVersion="500" InstallScope="perMachine" />
+    <MediaTemplate />
+
+    <!-- Directory tree -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="NetworkObservabilityAgent" />
+      </Directory>
+    </Directory>
+
+    <!-- agent.exe (versioned, key file) -->
+    <Component Id="AgentExeComponent" Guid="*" Directory="INSTALLDIR">
+      <File Id="AgentExe" Source="payload\agent.exe" KeyPath="yes" />
+    </Component>
+
+    <!-- agent.py -->
+    <Component Id="AgentPyComponent" Guid="*" Directory="INSTALLDIR">
+      <File Id="AgentPy" Source="payload\agent.py" KeyPath="yes" />
+    </Component>
+
+    <!-- dynatrace.json -->
+    <Component Id="SecretsComponent" Guid="*" Directory="INSTALLDIR">
+      <File Id="DynatraceSecrets" Source="payload\secrets\dynatrace.json" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="MainFeature" Level="1">
+      <ComponentRef Id="AgentExeComponent" />
+      <ComponentRef Id="AgentPyComponent" />
+      <ComponentRef Id="SecretsComponent" />
+    </Feature>
+
+    <!-- Post-install: create Windows service -->
+    <CustomAction
+      Id="InstallService"
+      Execute="deferred"
+      Impersonate="no"
+      FileKey="AgentExe"
+      ExeCommand="powershell.exe -ExecutionPolicy Bypass -File install.ps1"
+      Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallService" After="InstallFiles">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
+  </Product>
+
+</Wix>
